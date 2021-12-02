@@ -45,7 +45,6 @@ public class CGCW01{
 
 	public static void main(String[] args) {
 		new CGCW01();
-
 	}
 
 	class Renderer implements GLEventListener, KeyListener {
@@ -70,6 +69,10 @@ public class CGCW01{
 		private int Projection; 
 		private int NormalTransform;
 		private float scale = 1;
+		private float tx = 0;
+		private float ty = 0;
+		private float rx = 0;
+		private float ry = 0;
 		
 		@Override
 		public void display(GLAutoDrawable drawable) {
@@ -82,10 +85,13 @@ public class CGCW01{
 
 			T.initialize();
 			
-			//Key control interaction
+			// Key control interaction
 			T.scale(scale, scale, scale);
 			
 			/* Task 1.c: Fill in transformation code here*/
+			T.rotateX(rx);
+			T.rotateY(ry);
+			T.translate(tx, ty, 0);
 			
 			//Locate camera
 			T.lookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);  	//Default					
@@ -213,8 +219,7 @@ public class CGCW01{
 		}
 		
 		@Override
-		public void reshape(GLAutoDrawable drawable, int x, int y, int w,
-				int h) {
+		public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) {
 
 			GL3 gl = drawable.getGL().getGL3(); // Get the GL pipeline object
 			
@@ -240,32 +245,27 @@ public class CGCW01{
 
 		@Override
 		public void keyPressed(KeyEvent ke) {
-			int keyEvent = ke.getKeyCode(); 
-			switch (keyEvent){
-			case KeyEvent.VK_ESCAPE:
-				window.destroy();
-				break;
-			case KeyEvent.VK_M:
-				scale *= 1.1;
-				break;			
+			int keyEvent = ke.getKeyCode();
+			switch (keyEvent) {
+				case KeyEvent.VK_ESCAPE -> window.destroy();
+				case KeyEvent.VK_M -> scale *= 1.1;
+				case KeyEvent.VK_N -> scale *= 0.9;
 
-			/* Task 1.a: Define some parameters for transformations 
-			 * somewhere else in this program. 
-			 *
-			 * Task 1.b: Fill in code here to calculate the parameters to 
-			 * respond to some key events. 
-			 * 
-				// scale down the object when the key 'N' is pressed
-				// move the object left when the Left arrow key is pressed 
-				// move the object right when the Right arrow key is pressed 
-				// move the object up when the Up arrow key is pressed 
-				// move the object down when the down arrow key is pressed 
-				// rotate the object around X axis clockwise or anti-clockwise
-				// when the key 'X' or 'C' is pressed 
-				// rotate the object around Y axis clockwise or anti-clockwise
-				// when the key 'Y' or 'U' is pressed 
-			*/
-			}								
+				// Code to transform position
+				// Multiply by scale so movement is always consistent
+				case KeyEvent.VK_DOWN -> ty -= 1 * scale;
+				case KeyEvent.VK_UP -> ty += 1 * scale;
+				case KeyEvent.VK_RIGHT -> tx += 1 * scale;
+				case KeyEvent.VK_LEFT -> tx -= 1 * scale;
+
+				// Code to perform x-axis rotation
+				case KeyEvent.VK_X -> rx += 1;
+				case KeyEvent.VK_C -> rx -= 1;
+
+				// Code to perform y-axis rotation
+				case KeyEvent.VK_Y -> ry += 1;
+				case KeyEvent.VK_U -> ry -= 1;
+			}
 		}
 
 		@Override

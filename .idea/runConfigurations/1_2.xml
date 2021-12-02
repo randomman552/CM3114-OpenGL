@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Task 1" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="CGCW01" />
+  <configuration default="false" name="1.2" type="Application" factoryName="Application" folderName="Task 1">
+    <option name="MAIN_CLASS_NAME" value="CGCW02" />
     <module name="CM3114-Coursework" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
     <method v="2">
