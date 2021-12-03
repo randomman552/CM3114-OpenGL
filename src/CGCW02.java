@@ -6,6 +6,7 @@ import java.nio.IntBuffer;
 import Basic.ShaderProg;
 import Basic.Transform;
 import Basic.Vec4;
+import Objects.SCone;
 import Objects.SObject;
 import Objects.SSphere;
 
@@ -46,20 +47,23 @@ public class CGCW02{
 
 	}
 
-	class Renderer implements GLEventListener {
+	static class Renderer implements GLEventListener {
 
-		private Transform T = new Transform(); //model_view transform
+		private final Transform T = new Transform(); //model_view transform
 
 		//VAOs and VBOs parameters
-		private int idPoint=0, numVAOs = 2;
-		private int idBuffer=0, numVBOs = 2;
-		private int idElement=0, numEBOs = 2;
-		private int[] VAOs = new int[numVAOs];
-		private int[] VBOs = new int[numVBOs];
-		private int[] EBOs = new int[numEBOs];
+		private int idPoint=0;
+		private final int numVAOs = 2;
+		private int idBuffer=0;
+		private final int numVBOs = 2;
+		private int idElement=0;
+		private final int numEBOs = 2;
+		private final int[] VAOs = new int[numVAOs];
+		private final int[] VBOs = new int[numVBOs];
+		private final int[] EBOs = new int[numEBOs];
 
 		//Model parameters
-		private int[] numElements = new int[numEBOs];
+		private final int[] numElements = new int[numEBOs];
 		private long vertexSize; 
 		private long normalSize; 
 		private int vPosition;
@@ -92,38 +96,56 @@ public class CGCW02{
 			
 			gl.glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-			//Transformation for the first object (a sphere)
+			// region Draw the sphere
+			// Transform position
 			T.initialize();
 			T.scale(0.3f, 0.3f, 0.3f);
-		    //Add code here to transform the first object (the sphere) into the position
-		    //as suggested in the coursework description, and draw it
-
-			//Locate camera
-//			T.LookAt(0, 0, 0, 0, 0, -100, 0, 1, 0);  	//Default					
+			T.rotateX(90);
+			T.translate(0, 0.5f, 0);
 			
-			//Send model_view and normal transformation matrices to shader. 
-			//Here parameter 'true' for transpose means to convert the row-major  
-			//matrix to column major one, which is required when vertices'
-			//location vectors are pre-multiplied by the model_view matrix.
-			//Note that the normal transformation matrix is the inverse-transpose
-			//matrix of the vertex transformation matrix
+			// Transform data to shader
 			gl.glUniformMatrix4fv( ModelView, 1, true, T.getTransformv(), 0 );			
 			gl.glUniformMatrix4fv( NormalTransform, 1, true, T.getInvTransformTv(), 0 );			
 			
-			//send other uniform variables to shader
+			// Send material data to shader
 			gl.glUniform4fv( AmbientProduct, 1, ambient1,0 );
 		    gl.glUniform4fv( DiffuseProduct, 1, diffuse1, 0 );
 		    gl.glUniform4fv( SpecularProduct, 1, specular1, 0 );			
 		    gl.glUniform1f( Shininess, materialShininess1);
 
+			// Draw the sphere
 			idPoint=0;
 			idBuffer=0;
 			idElement=0;
 			bindObject(gl);
-		    gl.glDrawElements(GL_TRIANGLES, numElements[idElement], GL_UNSIGNED_INT, 0);	
+		    gl.glDrawElements(GL_TRIANGLES, numElements[idElement], GL_UNSIGNED_INT, 0);
+			// endregion
 
-		    //Add code here to transform the second object (a cone) into the position
-		    //as suggested in the coursework description, and draw it
+		    // region Draw the cone
+			// Transform position
+			T.initialize();
+			T.scale(0.3f, 0.3f, 0.3f);
+			T.rotateX(-90);
+			T.translate(0, -0.1f, 0);
+
+			// Send transform data to shader
+			gl.glUniformMatrix4fv( ModelView, 1, true, T.getTransformv(), 0 );
+			gl.glUniformMatrix4fv( NormalTransform, 1, true, T.getInvTransformTv(), 0 );
+
+			// Send material data to shader
+			gl.glUniform4fv( AmbientProduct, 1, ambient2,0 );
+			gl.glUniform4fv( DiffuseProduct, 1, diffuse2, 0 );
+			gl.glUniform4fv( SpecularProduct, 1, specular2, 0 );
+			gl.glUniform1f( Shininess, materialShininess2);
+
+			// Draw the cone
+			idPoint=1;
+			idBuffer=1;
+			idElement=1;
+			bindObject(gl);
+			gl.glDrawElements(GL_TRIANGLES, numElements[idElement], GL_UNSIGNED_INT, 0);
+
+			// endregion
 		}
 
 		
@@ -168,14 +190,20 @@ public class CGCW02{
 		    Vec4 lightDiffuse = new Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		    Vec4 lightSpecular = new Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
-		    gl.glUniform4fv( gl.glGetUniformLocation(program, "LightPosition"),
-				  1, lightPosition, 0 );
+		    gl.glUniform4fv( gl.glGetUniformLocation(program, "LightPosition"), 1, lightPosition, 0 );
 
-			//create the first object: a sphere
+			// Vectors to store ambient, diffuse, and specular products
+			// Used by sphere and cone
+			Vec4 ambientProduct;
+			Vec4 diffuseProduct;
+			Vec4 specularProduct;
+
+			// region Create sphere
+			// Create the first object: Sphere
 		    SObject sphere = new SSphere(1,40,40);
-			idPoint=0;
-			idBuffer=0;
-			idElement=0;
+			idPoint = 0;
+			idBuffer = 0;
+			idElement=  0;
 			createObject(gl, sphere);
 
 			// Set Sphere material
@@ -184,24 +212,42 @@ public class CGCW02{
 		    Vec4 materialSpecular1 = new Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		    materialShininess1 = 64.0f;
 
-		    Vec4 ambientProduct = lightAmbient.times(materialAmbient1);
+		    ambientProduct = lightAmbient.times(materialAmbient1);
 		    ambient1 = ambientProduct.getVector();
-		    Vec4 diffuseProduct = lightDiffuse.times(materialDiffuse1);
+		    diffuseProduct = lightDiffuse.times(materialDiffuse1);
 		    diffuse1 = diffuseProduct.getVector();
-		    Vec4 specularProduct = lightSpecular.times(materialSpecular1);
+		    specularProduct = lightSpecular.times(materialSpecular1);
 		    specular1 = specularProduct.getVector();
+			// endregion
 
-			//Create the second object (a cone) here, and set the  
-		    //cone material different to the sphere
-		    				 
-		    // This is necessary. Otherwise, the The color on back face may display 
-//		    gl.glDepthFunc(GL_LESS);
+			// region Create cone
+			// Create the second object: Cone
+			SObject cone = new SCone(40);
+			idPoint = 1;
+			idBuffer = 1;
+			idElement = 1;
+			createObject(gl, cone);
+
+			// Set Cone Material
+			Vec4 materialAmbient2 = new Vec4(0.0f, 0f, 0.5f, 1.0f);
+			Vec4 materialDiffuse2 = new Vec4(0.0f, 0.25f, 0.5f, 1.0f);
+			Vec4 materialSpecular2 = new Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			materialShininess2 = 64.0f;
+
+			ambientProduct = lightAmbient.times(materialAmbient2);
+			ambient2 = ambientProduct.getVector();
+			diffuseProduct = lightDiffuse.times(materialDiffuse2);
+			diffuse2 = diffuseProduct.getVector();
+			specularProduct = lightSpecular.times(materialSpecular2);
+			specular2 = specularProduct.getVector();
+			// endregion
+
+		    // This is necessary. Otherwise, The color on back face may display
 		    gl.glEnable(GL_DEPTH_TEST);		    
 		}
 		
 		@Override
-		public void reshape(GLAutoDrawable drawable, int x, int y, int w,
-				int h) {
+		public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) {
 
 			GL3 gl = drawable.getGL().getGL3(); // Get the GL pipeline object this 
 			
@@ -229,7 +275,6 @@ public class CGCW02{
 		@Override
 		public void dispose(GLAutoDrawable drawable) {
 			System.exit(0);
-			
 		}
 		
 		public void createObject(GL3 gl, SObject obj) {
@@ -245,8 +290,8 @@ public class CGCW02{
 			
 		    // Create an empty buffer with the size we need 
 			// and a null pointer for the data values
-			vertexSize = vertexArray.length*(Float.SIZE/8);
-			normalSize = normalArray.length*(Float.SIZE/8);
+			vertexSize = (long) vertexArray.length *(Float.SIZE/8);
+			normalSize = (long) normalArray.length *(Float.SIZE/8);
 			gl.glBufferData(GL_ARRAY_BUFFER, vertexSize +normalSize, 
 					null, GL_STATIC_DRAW); // pay attention to *Float.SIZE/8
 		    
@@ -257,7 +302,7 @@ public class CGCW02{
 
 			IntBuffer elements = IntBuffer.wrap(vertexIndexs);			
 
-			long indexSize = vertexIndexs.length*(Integer.SIZE/8);
+			long indexSize = (long) vertexIndexs.length *(Integer.SIZE/8);
 			gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize, 
 					elements, GL_STATIC_DRAW); // pay attention to *Float.SIZE/8						
 			gl.glEnableVertexAttribArray(vPosition);
@@ -270,6 +315,6 @@ public class CGCW02{
 			gl.glBindVertexArray(VAOs[idPoint]);
 			gl.glBindBuffer(GL_ARRAY_BUFFER, VBOs[idBuffer]);
 			gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[idElement]);			
-		};
+		}
 	}
 }

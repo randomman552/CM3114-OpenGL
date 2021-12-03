@@ -57,8 +57,8 @@ public abstract class SObject {
 	}	
 
 	public float[] getNormals(){
-			update();
-			return normals;
+		update();
+		return normals;
 	}	
 
 	public float[] getTextures(){
