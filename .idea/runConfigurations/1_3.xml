@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="1.3" type="Application" factoryName="Application" folderName="Task 1">
+    <option name="MAIN_CLASS_NAME" value="CGCW03" />
+    <module name="CM3114-Coursework" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
