@@ -77,8 +77,8 @@ public class CGCW03 {
         private float scale = 1;
         private float tx = 0;
         private float ty = 0;
-        private float rx = 0;
-        private float ry = 0;
+        private float rx = 30;
+        private float ry = 20;
 
         @Override
         public void display(GLAutoDrawable drawable) {
