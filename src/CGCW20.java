@@ -76,8 +76,8 @@ public class CGCW20 {
         private float scale = 1;
         private float tx = 0;
         private float ty = 0;
-        private float rx = 0;
-        private float ry = 0;
+        private float rx = 20;
+        private float ry = 20;
 
         // Texture parameters
         private Texture decalTex;
