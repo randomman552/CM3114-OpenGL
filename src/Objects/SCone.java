@@ -27,6 +27,7 @@ public class SCone extends SObject {
 
     @Override
     protected void genData() {
+        // Angle between each slice
         float deltaSlice = (float) (PI*2/slices);
 
         // Generate arrays for verts, normals, and textures
@@ -44,7 +45,8 @@ public class SCone extends SObject {
         textures[k]= 0.5f; textures[k+1] = 1.0f;
         k++;
 
-        // Only 1 stack, generate verts for main body
+        // Only 1 stack, generate verts in a ring for this one stack
+        // Verts for main body are around the South-pole point at the bottom of the cone
         for(int j = 0; j <= slices; j++) {
             normals[3*k] = cos(deltaSlice*j);
             normals[3*k+1] = sin(deltaSlice*j);
@@ -57,7 +59,7 @@ public class SCone extends SObject {
             k++;
         }
 
-        //South pole point
+        // South-pole point
         normals[3*k] = 0; normals[3*k+1] = 0; normals[3*k+2] = -1;
         vertices[3*k] = 0; vertices[3*k+1] = 0; vertices[3*k+2] = -height/2;
         textures[2*k] = 0.5f; textures[2*k+1] = 0.0f;

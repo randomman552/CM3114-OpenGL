@@ -20,7 +20,6 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.FPSAnimator;
 
 public class CGCW02{
-
 	final GLWindow window; //Define a window
 	final FPSAnimator animator=new FPSAnimator(60, true);
 	final Renderer renderer = new Renderer();
@@ -51,7 +50,7 @@ public class CGCW02{
 
 		private final Transform T = new Transform(); //model_view transform
 
-		//VAOs and VBOs parameters
+		// VAOs and VBOs parameters
 		private int idPoint=0;
 		private final int numVAOs = 2;
 		private int idBuffer=0;
@@ -62,24 +61,25 @@ public class CGCW02{
 		private final int[] VBOs = new int[numVBOs];
 		private final int[] EBOs = new int[numEBOs];
 
-		//Model parameters
+		// Model parameters
 		private final int[] numElements = new int[numEBOs];
 		private long vertexSize; 
 		private long normalSize; 
 		private int vPosition;
 		private int vNormal;
 
-		//Transformation parameters
+		// Transformation parameters
 		private int ModelView;
 		private int NormalTransform;
 		private int Projection; 
 
-		//Lighting parameter
+		// Lighting parameters
 		private int AmbientProduct;
 		private int DiffuseProduct;
 		private int SpecularProduct;			
 		private int Shininess;
 
+		// Material parameters
 		private float[] ambient1; 
 	    private float[] diffuse1;
 	    private float[] specular1;
@@ -92,7 +92,7 @@ public class CGCW02{
 
 		@Override
 		public void display(GLAutoDrawable drawable) {
-			GL3 gl = drawable.getGL().getGL3(); // Get the GL pipeline object this 
+			GL3 gl = drawable.getGL().getGL3(); // Get GL pipeline object
 			
 			gl.glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
@@ -148,23 +148,22 @@ public class CGCW02{
 			// endregion
 		}
 
-		
 		@Override
 		public void init(GLAutoDrawable drawable) {
-			GL3 gl = drawable.getGL().getGL3(); // Get the GL pipeline object this 
-
-			System.out.print("GL_Version: " + gl.glGetString(GL_VERSION));
+			GL3 gl = drawable.getGL().getGL3(); //Get GL pipeline object
 			
-			gl.glEnable(GL_CULL_FACE); 
+			gl.glEnable(GL_CULL_FACE);
+			// This is necessary. Otherwise, The color on back face may display
+			gl.glEnable(GL_DEPTH_TEST);
 
-			//compile and use the shader program
+			// Compile shader
 			ShaderProg shaderproc = new ShaderProg(gl, "Gouraud.vert", "Gouraud.frag");
 			int program = shaderproc.getProgram();
 			gl.glUseProgram(program);
 
 			// Initialize the vertex position and normal attribute in the vertex shader    
-		    vPosition = gl.glGetAttribLocation( program, "vPosition" );
-		    vNormal = gl.glGetAttribLocation( program, "vNormal" );
+		    vPosition = gl.glGetAttribLocation(program, "vPosition");
+		    vNormal = gl.glGetAttribLocation(program, "vNormal");
 
 		    // Get connected with the ModelView, NormalTransform, and Projection matrices
 		    // in the vertex shader
@@ -193,7 +192,7 @@ public class CGCW02{
 		    gl.glUniform4fv( gl.glGetUniformLocation(program, "LightPosition"), 1, lightPosition, 0 );
 
 			// Vectors to store ambient, diffuse, and specular products
-			// Used by sphere and cone
+			// Used by both sphere and cone
 			Vec4 ambientProduct;
 			Vec4 diffuseProduct;
 			Vec4 specularProduct;
@@ -242,8 +241,6 @@ public class CGCW02{
 			specular2 = specularProduct.getVector();
 			// endregion
 
-		    // This is necessary. Otherwise, The color on back face may display
-		    gl.glEnable(GL_DEPTH_TEST);		    
 		}
 		
 		@Override

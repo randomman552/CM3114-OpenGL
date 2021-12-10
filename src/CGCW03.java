@@ -50,7 +50,6 @@ public class CGCW03 {
     }
 
     class Renderer implements GLEventListener, KeyListener {
-        private Texture texture;
         private final Transform T = new Transform();
 
         //VAOs and VBOs parameters
@@ -125,7 +124,7 @@ public class CGCW03 {
 
             // Attempt to load texture
             try {
-                texture = TextureIO.newTexture(new File("WelshDragon.jpg"), false);
+                Texture texture = TextureIO.newTexture(new File("WelshDragon.jpg"), false);
             } catch (IOException e) {
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
                 System.exit(1);
@@ -133,7 +132,7 @@ public class CGCW03 {
 
             gl.glEnable(GL_PRIMITIVE_RESTART);
             gl.glPrimitiveRestartIndex(0xFFFF);
-
+            gl.glEnable(GL_DEPTH_TEST);
             gl.glEnable(GL_CULL_FACE);
 
             // region Create object and get data
@@ -218,7 +217,7 @@ public class CGCW03 {
             Vec4 lightSpecular = new Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
             Vec4 materialAmbient = new Vec4(0.5f, 0.5f, 0.5f, 1.0f);
-            Vec4 materialDiffuse = new Vec4(1f, 1f, 1f, 1.0f);
+            Vec4 materialDiffuse = new Vec4(0.5f, 0.5f, 0.5f, 1.0f);
             Vec4 materialSpecular = new Vec4(1f, 1f, 1f, 1.0f);
             float  materialShininess = 27.8974f;
 
@@ -235,19 +234,14 @@ public class CGCW03 {
                     1, diffuse, 0 );
             gl.glUniform4fv( gl.glGetUniformLocation(program, "SpecularProduct"),
                     1, specular, 0 );
-
             gl.glUniform4fv( gl.glGetUniformLocation(program, "LightPosition"),
                     1, lightPosition, 0 );
-
             gl.glUniform1f( gl.glGetUniformLocation(program, "Shininess"),
                     materialShininess );
 
             //endregion
 
-            // This is necessary. Otherwise, The color on back face may display
-//		    gl.glDepthFunc(GL_LESS);
-            gl.glEnable(GL_DEPTH_TEST);
-
+            // Transform texture information to shader
             gl.glActiveTexture(GL_TEXTURE0);
             gl.glUniform1i( gl.glGetUniformLocation(program, "tex"), 0 );
         }

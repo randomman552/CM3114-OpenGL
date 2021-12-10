@@ -20,7 +20,6 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.FPSAnimator;
 
 public class CGCW01{
-
 	final GLWindow window; //Define a window
 	final FPSAnimator animator=new FPSAnimator(60, true);
 	final Renderer renderer = new Renderer();
@@ -48,16 +47,18 @@ public class CGCW01{
 	}
 
 	class Renderer implements GLEventListener, KeyListener {
-
-		private Transform T = new Transform();
+		private final Transform T = new Transform();
 
 		//VAOs and VBOs parameters
-		private int idPoint=0, numVAOs = 1;
-		private int idBuffer=0, numVBOs = 1;
-		private int idElement=0, numEBOs = 1;
-		private int[] VAOs = new int[numVAOs];
-		private int[] VBOs = new int[numVBOs];
-		private int[] EBOs = new int[numEBOs];
+		private final int idPoint = 0;
+		private final int numVAOs = 1;
+		private int idBuffer=0;
+		private final int numVBOs = 1;
+		private int idElement=0;
+		private final int numEBOs = 1;
+		private final int[] VAOs = new int[numVAOs];
+		private final int[] VBOs = new int[numVBOs];
+		private final int[] EBOs = new int[numEBOs];
 
 		//Model parameters
 		private int numElements;
@@ -76,19 +77,18 @@ public class CGCW01{
 		
 		@Override
 		public void display(GLAutoDrawable drawable) {
-			GL3 gl = drawable.getGL().getGL3(); // Get the GL pipeline object this 
-			
+			GL3 gl = drawable.getGL().getGL3(); // Get GL pipeline object
+
+			// Clear screen
 			gl.glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 			gl.glPointSize(5);                                                                                                                                                                                                                                                                                                                                                                                                  
 			gl.glLineWidth(5);                                                                                                                                                                                                                                                                                                                                                                                                  
 
 			T.initialize();
-			
-			// Key control interaction
+
+			// Perform transformations based on current state
 			T.scale(scale, scale, scale);
-			
-			/* Task 1.c: Fill in transformation code here*/
 			T.rotateX(rx);
 			T.rotateY(ry);
 			T.translate(tx, ty, 0);
@@ -96,12 +96,7 @@ public class CGCW01{
 			//Locate camera
 			T.lookAt(0, 0, 0, 0, 0, -1, 0, 1, 0);  	//Default					
 			
-			//Send model_view and normal transformation matrices to shader. 
-			//Here parameter 'true' for transpose means to convert the row-major  
-			//matrix to column major one, which is required when vertices'
-			//location vectors are pre-multiplied by the model_view matrix.
-			//Note that the normal transformation matrix is the inverse-transpose
-			//matrix of the vertex transformation matrix
+			// Send model and normal transform matrices to shader
 			gl.glUniformMatrix4fv( ModelView, 1, true, T.getTransformv(), 0 );			
 			gl.glUniformMatrix4fv( NormalTransform, 1, true, T.getInvTransformTv(), 0 );			
 
@@ -116,19 +111,23 @@ public class CGCW01{
 
 		@Override
 		public void init(GLAutoDrawable drawable) {
-			GL3 gl = drawable.getGL().getGL3(); // Get the GL pipeline object this 
+			GL3 gl = drawable.getGL().getGL3(); // Get GL pipeline object
 			
 			gl.glEnable(GL_PRIMITIVE_RESTART);
 			gl.glPrimitiveRestartIndex(0xFFFF);
+			// Prevent back sides of objects from being rendered
+			gl.glEnable(GL_CULL_FACE);
+			gl.glEnable(GL_DEPTH_TEST);
 
-			gl.glEnable(GL_CULL_FACE); 
-			
+			// region Step 1: Create teapot
 			STeapot teapot = new STeapot(2);
 			float [] vertexArray = teapot.getVertices();
 			float [] normalArray = teapot.getNormals();
 			int [] vertexIndexs =teapot.getIndices();
 			numElements = teapot.getNumIndices();
-			
+			// endregion
+
+			// region Step 2: Prepare object data for transfer to shader
 			gl.glGenVertexArrays(numVAOs,VAOs,0);
 			gl.glBindVertexArray(VAOs[idPoint]);
 
@@ -140,10 +139,9 @@ public class CGCW01{
 
 		    // Create an empty buffer with the size we need 
 			// and a null pointer for the data values
-			long vertexSize = vertexArray.length*(Float.SIZE/8);
-			long normalSize = normalArray.length*(Float.SIZE/8);
-			gl.glBufferData(GL_ARRAY_BUFFER, vertexSize +normalSize, 
-					null, GL_STATIC_DRAW); // pay attention to *Float.SIZE/8
+			long vertexSize = (long) vertexArray.length * (Float.SIZE/8);
+			long normalSize = (long) normalArray.length * (Float.SIZE/8);
+			gl.glBufferData(GL_ARRAY_BUFFER, vertexSize +normalSize, null, GL_STATIC_DRAW);
 		    
 			// Load the real data separately.  We put the colors right after the vertex coordinates,
 		    // so, the offset for colors is the size of vertices in bytes
@@ -155,16 +153,18 @@ public class CGCW01{
 			gl.glGenBuffers(numEBOs, EBOs,0);
 			gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[idElement]);
 
+			long indexSize = (long) vertexIndexs.length *(Integer.SIZE/8);
+			gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize, elements, GL_STATIC_DRAW);
+			// endregion
 
-			long indexSize = vertexIndexs.length*(Integer.SIZE/8);
-			gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexSize, 
-					elements, GL_STATIC_DRAW); // pay attention to *Float.SIZE/8						
-			
+			// region Step 3: Create shader
 		    ShaderProg shaderproc = new ShaderProg(gl, "Gouraud.vert", "Gouraud.frag");
 			int program = shaderproc.getProgram();
 			gl.glUseProgram(program);
-			
-		   // Initialize the vertex position attribute in the vertex shader    
+			// endregion
+
+			// region Step 4: Send uniform variables to shader
+		    // Initialize the vertex position attribute in the vertex shader
 		    vPosition = gl.glGetAttribLocation( program, "vPosition" );
 			gl.glEnableVertexAttribArray(vPosition);
 			gl.glVertexAttribPointer(vPosition, 3, GL_FLOAT, false, 0, 0L);
@@ -206,16 +206,12 @@ public class CGCW01{
 				  1, diffuse, 0 );
 		    gl.glUniform4fv( gl.glGetUniformLocation(program, "SpecularProduct"),
 				  1, specular, 0 );
-			
 		    gl.glUniform4fv( gl.glGetUniformLocation(program, "LightPosition"),
 				  1, lightPosition, 0 );
-
 		    gl.glUniform1f( gl.glGetUniformLocation(program, "Shininess"),
 				 materialShininess );
-				 
-		    // This is necessary. Otherwise, the The color on back face may display 
-//		    gl.glDepthFunc(GL_LESS);
-		    gl.glEnable(GL_DEPTH_TEST);		    
+			// endregion
+
 		}
 		
 		@Override
@@ -272,6 +268,5 @@ public class CGCW01{
 		public void keyReleased(KeyEvent e) {
 			// TODO Auto-generated method stub			
 		}
-
 	}
 }
