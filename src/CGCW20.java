@@ -11,16 +11,10 @@ import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -87,7 +81,7 @@ public class CGCW20 {
 
         // Texture parameters
         private Texture decalTex;
-        private Texture bumpTex;
+        private Texture normalTex;
 
         @Override
         public void display(GLAutoDrawable drawable) {
@@ -130,21 +124,21 @@ public class CGCW20 {
             try {
                 // Get uniform locations
                 int decalTexLoc = gl.glGetUniformLocation(program, "decalTex");
-                int bumpTexLoc = gl.glGetUniformLocation(program, "bumpTex");
+                int bumpTexLoc = gl.glGetUniformLocation(program, "normalTex");
 
                 // Load textures
-                decalTex = TextureIO.newTexture(new File("bricksTexture.jpg"), false);
-                bumpTex = TextureIO.newTexture(new File("bricksBump.jpg"), false);
+                decalTex = TextureIO.newTexture(new File("WelshDragon.jpg"), false);
+                normalTex = TextureIO.newTexture(new File("NormalMap.jpg"), false);
 
-                // Pass textures to shader
+                // Pass texture ids to shader
                 gl.glUniform1i(decalTexLoc, decalTex.getTextureObject());
-                gl.glUniform1i(bumpTexLoc, bumpTex.getTextureObject());
+                gl.glUniform1i(bumpTexLoc, normalTex.getTextureObject());
 
                 // Bind textures
                 gl.glActiveTexture(GL_TEXTURE0 + decalTex.getTextureObject());
                 decalTex.bind(gl);
-                gl.glActiveTexture(GL_TEXTURE0 + bumpTex.getTextureObject());
-                bumpTex.bind(gl);
+                gl.glActiveTexture(GL_TEXTURE0 + normalTex.getTextureObject());
+                normalTex.bind(gl);
             } catch (IOException e) {
                 Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
                 System.exit(1);
@@ -227,7 +221,7 @@ public class CGCW20 {
             Vec4 lightSpecular = new Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
             Vec4 materialAmbient = new Vec4(0.5f, 0.5f, 0.5f, 1.0f);
-            Vec4 materialDiffuse = new Vec4(1f, 1f, 1f, 1.0f);
+            Vec4 materialDiffuse = new Vec4(0.5f, 0.5f, 0.5f, 1.0f);
             Vec4 materialSpecular = new Vec4(1f, 1f, 1f, 1.0f);
             float  materialShininess = 27.8974f;
 
